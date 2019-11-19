@@ -11,6 +11,8 @@ import (
 	"github.com/fatih/astrewrite"
 )
 
+// Rewrite rewrites bytes containing Go source code to replace pkg/errors
+// wrapping with the new "%w" fmt.Errorf wrapping.
 func Rewrite(filename string, oldSource []byte) ([]byte, error) {
 	fset := token.NewFileSet()
 	file, err := parser.ParseFile(fset, filename, oldSource, parser.ParseComments)
