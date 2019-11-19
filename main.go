@@ -29,9 +29,11 @@ func main() {
 	// Read original source
 	var oldSource []byte
 	var filename string
+	var fromStdin bool
 	var err error
 	switch len(pflag.Args()) {
 	case 0:
+		fromStdin = true
 		filename = "stdin"
 		oldSource, err = ioutil.ReadAll(os.Stdin)
 		if err != nil {
@@ -39,7 +41,7 @@ func main() {
 			os.Exit(1)
 		}
 	case 1:
-		filename := os.Args[1]
+		filename = pflag.Args()[0]
 		oldSource, err = ioutil.ReadFile(filename)
 		if err != nil {
 			log.Fatalf("couldn't read from %s: %v", filename, err)
@@ -57,7 +59,7 @@ func main() {
 	}
 
 	// Overwrite or print the new source
-	if *optWrite {
+	if !fromStdin && *optWrite {
 		fi, err := os.Stat(filename)
 		if err != nil {
 			log.Fatal(err)
