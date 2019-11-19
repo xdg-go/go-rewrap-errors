@@ -16,6 +16,8 @@ func TestRewrite(t *testing.T) {
 		"wrap_fcn",
 		"wrap_var",
 		"wrapf_string",
+		"wrapf_fcn",
+		"wrapf_var",
 	}
 
 	for _, c := range cases {
