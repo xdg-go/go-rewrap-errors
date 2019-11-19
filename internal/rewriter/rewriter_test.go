@@ -16,6 +16,7 @@ func TestRewrite(t *testing.T) {
 		"wrap_fcn",
 		"wrap_var",
 		"wrap_sprintf",
+		"wrap_sprintf_var",
 		"wrapf_string",
 		"wrapf_fcn",
 		"wrapf_var",
