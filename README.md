@@ -6,6 +6,28 @@ Rewrite Go source files to replace pkg/errors with Go 1.13 error wrapping.
 
 [Still under development.]
 
+This program reads a Go source file and rewraps errors like `errors.Wrap(err,
+"text")` to `fmt.Errorf("text: %w", err)` and similar for `errors.Wrapf`.
+Output defaults to stdout or the original file can be overwritten with the
+`-w` option.
+
+It does not modify package imports: run the resulting source through
+`goimports` for that.
+
+Currently, only `Wrap` and `Wrapf` are supported.
+
+## Installation
+
+```
+go get github.com/xdg-go/go-rewrap-errors
+```
+
+### Usage
+
+```
+go-rewrap-errors source.go > new-source.go
+```
+
 # Copyright and License
 
 Copyright 2019 by David A. Golden. All rights reserved.
