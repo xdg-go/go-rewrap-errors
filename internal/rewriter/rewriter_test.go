@@ -13,8 +13,8 @@ func TestRewrite(t *testing.T) {
 
 	cases := []string{
 		"wrap_string",
-		// "wrap_fcn",
-		// "wrap_var",
+		"wrap_fcn",
+		"wrap_var",
 		"wrapf_string",
 	}
 
@@ -29,6 +29,9 @@ func TestRewrite(t *testing.T) {
 				t.Fatal(err)
 			}
 			out, err := Rewrite(c, in)
+			if err != nil {
+				t.Errorf("Rewrite error: %v", err)
+			}
 			so := trimToMain(string(out))
 			se := trimToMain(string(expect))
 			if so != se {
@@ -40,5 +43,8 @@ func TestRewrite(t *testing.T) {
 
 func trimToMain(in string) string {
 	i := strings.Index(in, "func main")
+	if i < 0 {
+		return in
+	}
 	return in[i:]
 }
