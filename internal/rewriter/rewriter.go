@@ -31,34 +31,18 @@ func Rewrite(filename string, oldSource []byte) ([]byte, error) {
 }
 
 func visitor(n ast.Node) (ast.Node, bool) {
-	c, ok := n.(*ast.CallExpr)
-	if !ok {
+	c, name := getCallExprLiteral(n)
+	if c == nil {
 		return n, true
 	}
-
-	s, ok := c.Fun.(*ast.SelectorExpr)
-	if !ok {
-		return n, true
-	}
-
-	i, ok := s.X.(*ast.Ident)
-	if !ok {
-		return n, true
-	}
-
-	if i.Name != "errors" {
-		return n, true
-	}
-
-	switch s.Sel.Name {
-	case "Wrap":
+	switch name {
+	case "errors.Wrap":
 		return rewriteWrap(c), true
-	case "Wrapf":
+	case "errors.Wrapf":
 		return rewriteWrap(c), true
 	default:
+		return n, true
 	}
-
-	return n, true
 }
 
 func rewriteWrap(ce *ast.CallExpr) *ast.CallExpr {
@@ -66,6 +50,12 @@ func rewriteWrap(ce *ast.CallExpr) *ast.CallExpr {
 	newArgs := make([]ast.Expr, len(ce.Args)-1)
 	copy(newArgs, ce.Args[1:])
 	newArgs = append(newArgs, ce.Args[0])
+
+	// If the format string is a fmt.Sprintf call, we can unwrap it.
+	c, name := getCallExprLiteral(newArgs[0])
+	if c != nil && name == "fmt.Sprintf" {
+		newArgs = append(c.Args, newArgs[1:]...)
+	}
 
 	// If the format string is a literal, we can rewrite it:
 	//     "......" -> "......: %w"
@@ -85,6 +75,25 @@ func rewriteWrap(ce *ast.CallExpr) *ast.CallExpr {
 	}
 
 	return newErrorfExpr(newArgs)
+}
+
+func getCallExprLiteral(n ast.Node) (*ast.CallExpr, string) {
+	c, ok := n.(*ast.CallExpr)
+	if !ok {
+		return nil, ""
+	}
+
+	s, ok := c.Fun.(*ast.SelectorExpr)
+	if !ok {
+		return nil, ""
+	}
+
+	i, ok := s.X.(*ast.Ident)
+	if !ok {
+		return nil, ""
+	}
+
+	return c, i.Name + "." + s.Sel.Name
 }
 
 func newErrorfExpr(args []ast.Expr) *ast.CallExpr {
