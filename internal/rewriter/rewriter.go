@@ -48,6 +48,8 @@ func handleCallExpr(ce *ast.CallExpr) (ast.Node, bool) {
 		return rewriteWrap(ce), true
 	case "errors.Wrapf":
 		return rewriteWrap(ce), true
+	case "errors.Errorf":
+		return newErrorfExpr(ce.Args), true
 	default:
 		return ce, true
 	}
