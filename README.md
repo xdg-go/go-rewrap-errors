@@ -43,8 +43,17 @@ go get github.com/xdg-go/go-rewrap-errors
 
 ### Usage
 
+For a single file, with output to stdout:
+
 ```
 go-rewrap-errors source.go > new-source.go
+```
+
+For all Go files in a directory, recursively, overwriting in place, including
+`goimports` cleanup:
+
+```
+for f in $(find . -iname "*.go"); do go-rewrap-errors -w $f; goimports -w $f; done
 ```
 
 # Copyright and License
