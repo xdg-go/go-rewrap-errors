@@ -31,18 +31,33 @@ func Rewrite(filename string, oldSource []byte) ([]byte, error) {
 }
 
 func visitor(n ast.Node) (ast.Node, bool) {
-	c, name := getCallExprLiteral(n)
-	if c == nil {
-		return n, true
-	}
-	switch name {
-	case "errors.Wrap":
-		return rewriteWrap(c), true
-	case "errors.Wrapf":
-		return rewriteWrap(c), true
+	switch v := n.(type) {
+	case *ast.CallExpr:
+		return handleCallExpr(v)
+	case *ast.ImportSpec:
+		return handleImportSpec(v)
 	default:
 		return n, true
 	}
+}
+
+func handleCallExpr(ce *ast.CallExpr) (ast.Node, bool) {
+	name := getCallExprLiteral(ce)
+	switch name {
+	case "errors.Wrap":
+		return rewriteWrap(ce), true
+	case "errors.Wrapf":
+		return rewriteWrap(ce), true
+	default:
+		return ce, true
+	}
+}
+
+func handleImportSpec(im *ast.ImportSpec) (ast.Node, bool) {
+	if im.Path.Value == `"github.com/pkg/errors"` {
+		im.Path.Value = `"errors"`
+	}
+	return im, true
 }
 
 func rewriteWrap(ce *ast.CallExpr) *ast.CallExpr {
@@ -52,7 +67,7 @@ func rewriteWrap(ce *ast.CallExpr) *ast.CallExpr {
 	newArgs = append(newArgs, ce.Args[0])
 
 	// If the format string is a fmt.Sprintf call, we can unwrap it.
-	c, name := getCallExprLiteral(newArgs[0])
+	c, name := getCallExpr(newArgs[0])
 	if c != nil && name == "fmt.Sprintf" {
 		newArgs = append(c.Args, newArgs[1:]...)
 	}
@@ -77,23 +92,30 @@ func rewriteWrap(ce *ast.CallExpr) *ast.CallExpr {
 	return newErrorfExpr(newArgs)
 }
 
-func getCallExprLiteral(n ast.Node) (*ast.CallExpr, string) {
+func getCallExpr(n ast.Node) (*ast.CallExpr, string) {
 	c, ok := n.(*ast.CallExpr)
 	if !ok {
 		return nil, ""
 	}
+	name := getCallExprLiteral(c)
+	if name == "" {
+		return nil, ""
+	}
+	return c, name
+}
 
+func getCallExprLiteral(c *ast.CallExpr) string {
 	s, ok := c.Fun.(*ast.SelectorExpr)
 	if !ok {
-		return nil, ""
+		return ""
 	}
 
 	i, ok := s.X.(*ast.Ident)
 	if !ok {
-		return nil, ""
+		return ""
 	}
 
-	return c, i.Name + "." + s.Sel.Name
+	return i.Name + "." + s.Sel.Name
 }
 
 func newErrorfExpr(args []ast.Expr) *ast.CallExpr {

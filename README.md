@@ -27,13 +27,13 @@ const errFmt = "text %s"
 errors.Wrapf(err, errFmt, s) -> fmt.Errorf(errFmt+": %w", s, err)
 ```
 
+Currently, only `Wrap` and `Wrapf` are supported.
+
+Any import of `github.com/pkg/errors` will be rewritten to `errors`.  You
+should run the resulting source through `goimports` to re-sort imports.
+
 Output defaults to stdout or the original file can be overwritten with the
 `-w` option.
-
-It does not modify package imports: run the resulting source through
-`goimports` for that.
-
-Currently, only `Wrap` and `Wrapf` are supported.
 
 ## Installation
 

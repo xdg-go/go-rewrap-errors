@@ -1,6 +1,7 @@
 package rewriter
 
 import (
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
@@ -8,6 +9,13 @@ import (
 
 	"github.com/andreyvit/diff"
 )
+
+func isEqual(t *testing.T, got, expect, label string) {
+	t.Helper()
+	if got != expect {
+		t.Errorf("%s:\n\n%s", label, diff.LineDiff(expect, got))
+	}
+}
 
 func TestRewrite(t *testing.T) {
 
@@ -39,9 +47,7 @@ func TestRewrite(t *testing.T) {
 			}
 			so := trimToMain(string(out))
 			se := trimToMain(string(expect))
-			if so != se {
-				t.Errorf("Incorrect rewrite of %s:\n%v", c, diff.LineDiff(se, so))
-			}
+			isEqual(t, so, se, fmt.Sprintf("Incorrect rewrite of %s", c))
 		})
 	}
 }
@@ -52,4 +58,22 @@ func trimToMain(in string) string {
 		return in
 	}
 	return in[i:]
+}
+
+func TestSubstPkg(t *testing.T) {
+	in := "package main\n\nimport \"github.com/pkg/errors\"\n"
+	out, err := Rewrite("test", []byte(in))
+	if err != nil {
+		t.Errorf("Rewrite error: %v", err)
+	}
+	expect := "package main\n\nimport \"errors\"\n"
+	isEqual(t, string(out), expect, "Incorrect rewrite of single import")
+
+	in = "package main\n\nimport (\n\t\"bytes\"\n\t\"github.com/pkg/errors\"\n)\n"
+	out, err = Rewrite("test", []byte(in))
+	if err != nil {
+		t.Errorf("Rewrite error: %v", err)
+	}
+	expect = "package main\n\nimport (\n\t\"bytes\"\n\t\"errors\"\n)\n"
+	isEqual(t, string(out), expect, "Incorrect rewrite of multi import")
 }
