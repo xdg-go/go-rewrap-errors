@@ -36,7 +36,8 @@ errors.Errorf("text %s", s) -> fmt.Errorf("text %s", s)
 Currently, only `Wrap`, `Wrapf`, and `Errorf` are supported.
 
 Any import of `github.com/pkg/errors` will be rewritten to `errors`.  You
-should run the resulting source through `goimports` to re-sort imports.
+should run the resulting source through `goimports` to clean up imports you
+don't need anymore.
 
 Output defaults to stdout or the original file can be overwritten with the
 `-w` option.
