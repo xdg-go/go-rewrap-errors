@@ -70,11 +70,11 @@ func TestSubstPkg(t *testing.T) {
 	expect := "package main\n\nimport \"errors\"\n"
 	isEqual(t, string(out), expect, "Incorrect rewrite of single import")
 
-	in = "package main\n\nimport (\n\t\"bytes\"\n\t\"github.com/pkg/errors\"\n)\n"
+	in = "package main\n\nimport (\n\t\"bytes\"\n\t\"fmt\"\n\n\t\"github.com/pkg/errors\"\n)\n"
 	out, err = Rewrite("test", []byte(in))
 	if err != nil {
 		t.Errorf("Rewrite error: %v", err)
 	}
-	expect = "package main\n\nimport (\n\t\"bytes\"\n\t\"errors\"\n)\n"
+	expect = "package main\n\nimport (\n\t\"bytes\"\n\t\"errors\"\n\t\"fmt\"\n)\n"
 	isEqual(t, string(out), expect, "Incorrect rewrite of multi import")
 }

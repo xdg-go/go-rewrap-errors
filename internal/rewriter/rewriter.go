@@ -34,8 +34,8 @@ func visitor(n ast.Node) (ast.Node, bool) {
 	switch v := n.(type) {
 	case *ast.CallExpr:
 		return handleCallExpr(v)
-	case *ast.ImportSpec:
-		return handleImportSpec(v)
+	case *ast.GenDecl:
+		return handleImportDecl(v)
 	default:
 		return n, true
 	}
@@ -55,11 +55,28 @@ func handleCallExpr(ce *ast.CallExpr) (ast.Node, bool) {
 	}
 }
 
-func handleImportSpec(im *ast.ImportSpec) (ast.Node, bool) {
-	if im.Path.Value == `"github.com/pkg/errors"` {
-		im.Path.Value = `"errors"`
+func handleImportDecl(gd *ast.GenDecl) (ast.Node, bool) {
+	// Ignore GenDecl's that aren't imports.
+	if gd.Tok != token.IMPORT {
+		return gd, true
 	}
-	return im, true
+	// Push "errors" to the front of specs so formatting will sort it with
+	// core libraries and discard pkg/errors.
+	newSpecs := []ast.Spec{
+		&ast.ImportSpec{Path: &ast.BasicLit{Kind: token.STRING, Value: `"errors"`}},
+	}
+	for _, s := range gd.Specs {
+		im, ok := s.(*ast.ImportSpec)
+		if !ok {
+			continue
+		}
+		if im.Path.Value == `"github.com/pkg/errors"` {
+			continue
+		}
+		newSpecs = append(newSpecs, s)
+	}
+	gd.Specs = newSpecs
+	return gd, true
 }
 
 func rewriteWrap(ce *ast.CallExpr) *ast.CallExpr {
