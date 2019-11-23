@@ -15,15 +15,15 @@ import (
 // wrapping with the new "%w" fmt.Errorf wrapping.
 func Rewrite(filename string, oldSource []byte) ([]byte, error) {
 	fset := token.NewFileSet()
-	file, err := parser.ParseFile(fset, filename, oldSource, parser.ParseComments)
+	oldAST, err := parser.ParseFile(fset, filename, oldSource, parser.ParseComments)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing %s: %w", filename, err)
 	}
 
-	rewritten := astrewrite.Walk(file, visitor)
+	newAST := astrewrite.Walk(oldAST, visitor)
 
 	buf := &bytes.Buffer{}
-	err = format.Node(buf, fset, rewritten)
+	err = format.Node(buf, fset, newAST)
 	if err != nil {
 		return nil, fmt.Errorf("error formatting new code: %w", err)
 	}
