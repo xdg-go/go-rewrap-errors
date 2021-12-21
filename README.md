@@ -44,6 +44,9 @@ Output defaults to stdout or the original file can be overwritten with the
 
 ## Installation
 
+NOTE: Do this outside your project directory so you don't modify your `go.mod`
+file.
+
 ```
 go get github.com/xdg-go/go-rewrap-errors
 ```
