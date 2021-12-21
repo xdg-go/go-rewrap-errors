@@ -4,7 +4,9 @@
 
 Rewrite Go source files to replace pkg/errors with Go 1.13 error wrapping.
 
-[Still under development.]
+Written to accompany the article
+[*Rewriting Go with AST transformation*](https://xdg.me/rewriting-go-with-ast-transformation/).
+(Not actively developed.)
 
 This program reads a Go source file and rewraps errors:
 
