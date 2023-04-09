@@ -93,12 +93,13 @@ func rewriteWrap(ce *ast.CallExpr) *ast.CallExpr {
 
 	// If the format string is a literal, we can rewrite it:
 	//     "......" -> "......: %w"
+	//     `......` -> `......: %w`
 	// Otherwise, we replace it with a binary op to add the wrap code:
 	//     SomeNonLiteral -> SomeNonLiteral + ": %w"
 	fmtStr, ok := newArgs[0].(*ast.BasicLit)
 	if ok {
-		// Strip trailing `"` and append wrap code and new trailing `"`
-		fmtStr.Value = fmtStr.Value[:len(fmtStr.Value)-1] + `: %w"`
+		// Strip closing quote character (" or `) and append it back after wrap code.
+		fmtStr.Value = fmtStr.Value[:len(fmtStr.Value)-1] + `: %w` + fmtStr.Value[len(fmtStr.Value)-1:]
 	} else {
 		binOp := &ast.BinaryExpr{
 			X:  newArgs[0],
